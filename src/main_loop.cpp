@@ -26,77 +26,19 @@ float lastX = win_width / 2.0f;
 float lastY = win_height / 2.0f;
 bool firstMouse = false;
 
-void transform3d(float *a, int aw, int n, float *b)
-{
-    for(int i=0; i<n; i++) {
-        float *tmpa = a + i*aw;
-        float x = tmpa[0]*b[0] + tmpa[1]*b[3] + tmpa[2]*b[6];
-        float y = tmpa[0]*b[1] + tmpa[1]*b[4] + tmpa[2]*b[7];
-        float z = tmpa[0]*b[2] + tmpa[1]*b[5] + tmpa[2]*b[8];
-        tmpa[0] = x;
-        tmpa[1] = y;
-        tmpa[2] = z;
-    }
-}
 
 int main()
 {
-    view_camera.set_position(glm::vec3(0, 0, 3.0));
-    // Object3d
-    float vertices[216] = {
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+    view_camera.set_position(glm::vec3(0, 0, 1.0));
+    // view_camera.set_movement_speed(20);
+    
+    Object3D cube("model3d/SHL_2pcs.stl", 0.01);
 
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
-    };
-    // float T[9] = {
-    //     1,2,3,
-    //     5,1,2,
-    //     2,-3,1
-    // };
-    // transform3d(vertices, 6, 36, T);
-
-    Object3D cube(vertices, 216);
-
+    
     cube.TranslateTo(glm::vec3(0.0f, 0.0f, 0.0f));
-    cube.RotateTo(30, glm::vec3(1,1,-1));
+    cube.RotateTo(-80, glm::vec3(0,1,0));
+    // cube.TranslateTo(glm::vec3(0.0f, 0.0f, 0.0f));
+    
     // glfw: initialize and configure
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // opencl version 3.3
@@ -198,7 +140,7 @@ int main()
 
         // render object
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDrawArrays(GL_TRIANGLES, 0, cube.get_num_point());
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         glfwSwapBuffers(window);
