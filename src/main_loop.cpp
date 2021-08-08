@@ -8,7 +8,7 @@
 
 #include <GLFW/glfw3.h>
 #include <iostream>
-//https://www.bilibili.com/video/BV1X7411F744?p=13
+
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -41,7 +41,7 @@ void transform3d(float *a, int aw, int n, float *b)
 
 int main()
 {
-
+    view_camera.set_position(glm::vec3(0, 0, 3.0));
     // Object3d
     float vertices[216] = {
         -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
@@ -96,6 +96,7 @@ int main()
     Object3D cube(vertices, 216);
 
     cube.TranslateTo(glm::vec3(0.0f, 0.0f, 0.0f));
+    cube.RotateTo(30, glm::vec3(1,1,-1));
     // glfw: initialize and configure
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // opencl version 3.3
@@ -124,7 +125,7 @@ int main()
     glEnable(GL_FRAMEBUFFER_SRGB);
 
     // build and compile our shader program
-    Shader vf_shader("shaders/vertex_obj.glsl", "shaders/fragment_obj.glsl");
+    Shader vf_shader("shaders/vertex_base.glsl", "shaders/fragment_base.glsl");
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     
@@ -151,8 +152,8 @@ int main()
 
     // make sure to initialize matrix to identity matrix first
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glPolygonMode(GL_FRONT, GL_FILL);
-    glPolygonMode(GL_BACK, GL_LINE);
+    // glPolygonMode(GL_FRONT, GL_FILL);
+    // glPolygonMode(GL_BACK, GL_LINE);
     
     
 
