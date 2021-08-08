@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.0)
+project(PTV)
+aux_source_directory(src DIR_SRCS)
+aux_source_directory(thirdparty/glad DIR_SRCS)
+message("source files: ${DIR_SRCS}")
+add_executable(PTV ${DIR_SRCS})
+target_link_libraries(PTV GLEW glfw3 GL X11 pthread Xrandr Xi dl)
