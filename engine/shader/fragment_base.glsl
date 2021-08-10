@@ -1,8 +1,11 @@
 #version 330 core
-out vec4 FragColor;
+out vec4 fragcolor;
 
-in vec3 Normal; 
-in vec3 FragPos;
+in vec3 normal; 
+in vec3 fragpos;
+in vec4 fragpos_light;
+
+uniform sampler2D depth_map;
 
 uniform vec3 light_direction; 
 uniform vec3 camera_position;
@@ -55,13 +58,13 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 void main()
 {
     // // BRDF
-    vec3 N = normalize(Normal);
-    vec3 V = normalize(camera_position - FragPos);
+    vec3 N = normalize(normal);
+    vec3 V = normalize(camera_position - fragpos);
     vec3 F0 = mix(object_f0, object_color, metallic);
     vec3 Lo = vec3(0.0);
     vec3 L = normalize(light_direction);
     vec3 H = normalize(V + L);
-    // float distance = length(light_position - FragPos);
+    // float distance = length(light_position - fragpos);
     // float attenuation = 1.0 / (distance * distance);
     // vec3 radiance = light_color * attenuation;
     vec3 radiance = light_color;
@@ -76,7 +79,22 @@ void main()
     kD *= 1.0 - metallic;
     float NdotL = max(dot(N, L), 0.0); 
     Lo = (kD * object_color / PI + specular) * radiance * NdotL;
-    vec3 result = (object_color * ao + Lo);
-    result = result / (result + vec3(1.0));
-    FragColor = vec4(result, 1.0f);
+    
+    
+
+    vec3 proj_coords = fragpos_light.xyz / fragpos_light.w;
+    proj_coords = proj_coords * 0.5 + 0.5;
+    float closest_depth = texture(depth_map, proj_coords.xy).r; 
+    float current_depth = proj_coords.z;
+    float shadow = current_depth - 0.005 > closest_depth  ? 1.0 : 0.0;
+    shadow = min(shadow, 0.75);
+    // shadow = 0.0;
+
+    // vec3 result = (object_color * ao + Lo*(1.0-shadow));
+    // vec3 result = (object_color * ao + Lo);
+    // fragcolor = vec4(vec3(1.0 - shadow), 1);
+    fragcolor = vec4(vec3(1.0 - shadow), 1);
+
+    // result = result / (result + vec3(1.0));
+    // fragcolor = vec4(result, 1.0f);
 }
