@@ -1,59 +1,129 @@
-#ifndef OBJECT3D
-#define OBJECT3D
-
-#include <iostream>
-#include <fstream>
+#pragma once
 
 #include "../thirdparty/glad/glad.h"
 #include "../thirdparty/glm/glm.hpp"
 #include "../thirdparty/glm/gtc/matrix_transform.hpp"
 #include "../thirdparty/glm/gtc/type_ptr.hpp"
+#include "../thirdparty/glfw/include/GLFW/glfw3.h"
 
-class Object3D
+#include "shader.h"
+
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <unordered_map>
+
+
+struct ObjectInfo {
+    glm::mat4 model;
+    bool is_glbuffer;
+    bool is_cuda;
+    float *pdata;
+    float *pdata_cuda;
+    size_t len;
+    glm::vec3 color;
+    glm::vec3 f0;
+    float ao;
+    float roughness;
+    float metallic;
+    unsigned int vbo;
+    ObjectInfo() {}
+    ObjectInfo(glm::mat4 &model_, float *pdata_, size_t len_) : model(model_), 
+        is_glbuffer(false), is_cuda(false), pdata(pdata_), pdata_cuda(nullptr), 
+        len(len_), color(glm::vec3(0.1f, 0.4f, 0.4f)), f0(glm::vec3(1.00, 0.71, 0.29)), 
+        ao(0.4f), roughness(0.4f), metallic(0.4f) {}
+};
+
+
+class Object3DContainer
 {
 private:
-    glm::mat4 model_;
-    float *data_; // x0,y0,z0,nx0,ny0,nz0,x1,...
-    size_t len_;
+    std::vector<unsigned int> vaos_;
+    std::unordered_map<unsigned int, ObjectInfo> map_info_;
 public:
-    Object3D(const float *data, size_t len) {
-        data_ = new float[len]; len_ = len; memcpy(data_, data, len*sizeof(float));}
-    Object3D(const char *stl_file_path, float scale=1.0) {
+    Object3DContainer() {}
+    ~Object3DContainer() {
+        while(!vaos_.empty()) {
+            unsigned int back_index = vaos_.size() - 1;
+            DeleteObjectByIndex(back_index, false);
+        }
+    }
+    void DeleteObjectByIndex(int idx, bool del_gl=true) {
+        unsigned int vao = vaos_[idx];
+        delete[] map_info_[vao].pdata;
+        if (del_gl) glDeleteBuffers(1, &map_info_[vao].vbo);
+        vaos_.erase(vaos_.begin() + idx);
+        map_info_.erase(vao);
+        if (del_gl) glDeleteVertexArrays(1, &vao);
+    }
+    int AddObjectBySTLFIle(const char *stl_file_path, float scale=1.0) {
         std::ifstream file(stl_file_path, std::ios::binary | std::ios::in);
-        if (!file) {data_=NULL; len_=0; return;}
+        if (!file) return -1;
         file.ignore(80);
         int num_tris;
         file.read((char*)(&num_tris), sizeof(int));
-        len_ = num_tris*18;
-        data_ = new float[len_];
+        unsigned int len = num_tris*18;
+        float *pdata = new float[len];
         size_t pos = 0;
         for (int i = 0; i < num_tris; i++) {
             float norm[3];
             float tri[9];
             file.read((char*)norm, 3*sizeof(float));
             file.read((char*)tri, 9*sizeof(float));
-            for(int j=0; j<3; j++) data_[pos++] = tri[j]*scale;
-            for(int j=0; j<3; j++) data_[pos++] = norm[j]*scale;
-            for(int j=3; j<6; j++) data_[pos++] = tri[j]*scale;
-            for(int j=0; j<3; j++) data_[pos++] = norm[j]*scale;
-            for(int j=6; j<9; j++) data_[pos++] = tri[j]*scale;
-            for(int j=0; j<3; j++) data_[pos++] = norm[j]*scale;
+            for(int j=0; j<3; j++) pdata[pos++] = tri[j]*scale;
+            for(int j=0; j<3; j++) pdata[pos++] = norm[j]*scale;
+            for(int j=3; j<6; j++) pdata[pos++] = tri[j]*scale;
+            for(int j=0; j<3; j++) pdata[pos++] = norm[j]*scale;
+            for(int j=6; j<9; j++) pdata[pos++] = tri[j]*scale;
+            for(int j=0; j<3; j++) pdata[pos++] = norm[j]*scale;
             file.ignore(2);
         }
+        glm::mat4 model = glm::mat4(1.0f);
+        unsigned int vao;
+        glGenVertexArrays(1, &vao);
+        vaos_.push_back(vao);
+        map_info_[vao] = ObjectInfo(model, pdata, len);
+        return 0;
     }
-    Object3D() {model_ = glm::mat4(1.0f); data_=nullptr;}
-    ~Object3D() {delete []data_;}
-    float *data() const {return data_;}
-    size_t len() const {return len_;}
-    glm::mat4 model() const {return model_;}
-    void set_model(const glm::mat4 &model) {model_=model;}
-    void TranslateSelf(const glm::vec3 &vec) {model_ = glm::translate(model_, vec);}
-    void TranslateTo(const glm::vec3 &vec) {model_ = glm::mat4(1.0f); model_ = glm::translate(model_, vec);}
-    void RotateSelf(const float degree, const glm::vec3 &axis) {
-        model_ = glm::rotate(model_, glm::radians(degree), axis);}
-    void RotateTo(const float degree, const glm::vec3 &axis) {
-        model_ = glm::mat4(1.0f); model_ = glm::rotate(model_, glm::radians(degree), axis);}
-    int get_num_point() const {return len_/6;}
-};
 
-#endif
+    void RenderGL(Shader &shader) {
+        shader.Use();
+        for (auto vao : vaos_) {
+            glBindVertexArray(vao);
+            auto &map_info_vao = map_info_[vao];
+            if (!map_info_vao.is_glbuffer) {
+                glGenBuffers(1, &map_info_vao.vbo);
+                glBindBuffer(GL_ARRAY_BUFFER, map_info_vao.vbo);
+                glBufferData(GL_ARRAY_BUFFER, map_info_vao.len*sizeof(map_info_vao.pdata[0]), 
+                    map_info_vao.pdata, GL_STATIC_DRAW);
+                glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+                glEnableVertexAttribArray(0);
+                glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+                glEnableVertexAttribArray(1);
+                map_info_vao.is_glbuffer = true;
+            }
+            shader.SetMat4("model", map_info_vao.model);
+            shader.SetVec3("object_color", map_info_vao.color);
+            shader.SetVec3("object_f0", map_info_vao.f0);
+            shader.SetFloat("ao", map_info_vao.ao);
+            shader.SetFloat("roughness", map_info_vao.roughness);
+            shader.SetFloat("metallic", map_info_vao.metallic);
+            glDrawArrays(GL_TRIANGLES, 0, map_info_vao.len/6);
+        }
+        glBindVertexArray(0);
+    }
+
+    void TranslateToByIndex(const int idx, const glm::vec3 &vec) {
+        auto &map_info_vao = map_info_[vaos_[idx]];
+        auto model = glm::mat4(1.0f); 
+        model = glm::translate(model, vec);
+        map_info_vao.model = model;
+    }
+
+    void RotateToByIndex(const int idx, const float degree, const glm::vec3 &axis) {
+        auto &map_info_vao = map_info_[vaos_[idx]];
+        auto model = glm::mat4(1.0f); 
+        model = glm::rotate(model, glm::radians(degree), axis);
+        map_info_vao.model = model;
+    }
+};

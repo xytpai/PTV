@@ -1,11 +1,14 @@
-#ifndef CAMERA_H
-#define CAMERA_H
+#pragma once
 
 #include "../thirdparty/glad/glad.h"
 #include "../thirdparty/glm/glm.hpp"
 #include "../thirdparty/glm/gtc/matrix_transform.hpp"
 
+#include "shader.h"
+
+#include <iostream>
 #include <vector>
+
 
 class Camera
 {
@@ -104,6 +107,13 @@ public:
         return glm::perspective(glm::radians(zoom()), 
             win_width / win_height, 0.1f, 100.0f);
     }
+    void RenderGL(Shader &shader, int god_win_height, int god_win_width)
+    {
+        shader.Use();
+        glm::mat4 view = GetViewMatrix();
+        glm::mat4 projection = GetProjectionMatrix(god_win_width, god_win_height);
+        shader.SetMat4("view", view);
+        shader.SetMat4("projection", projection);
+        shader.SetVec3("camera_position", position());
+    }
 };
-
-#endif

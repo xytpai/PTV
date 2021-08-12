@@ -1,5 +1,4 @@
-#ifndef SHADER_H
-#define SHADER_H
+#pragma once
 
 #include "../thirdparty/glad/glad.h"
 #include "../thirdparty/glm/glm.hpp"
@@ -8,6 +7,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+
 
 class Shader
 {
@@ -198,5 +198,3 @@ private:
         }
     }
 };
-
-#endif

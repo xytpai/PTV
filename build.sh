@@ -15,4 +15,6 @@ else
     cd ../../../
 fi
 
-python setup.py install
+mkdir build; cd build
+cmake ..; make -j4
+cd ..; ./build/world

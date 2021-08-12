@@ -5,10 +5,10 @@ Code is run on Ubuntu 20.04, for developing usage, you should:
 
 ---
 
-### Install
+### Build
 
 ```bash
-bash install.sh
+bash build.sh
 
 # For glad update
 # Web service: http://glad.dav1d.de/
