@@ -11,7 +11,7 @@ else
     fi
     cd ./thirdparty/glfw
     mkdir build; cd build
-    cmake ..; make
+    cmake ..; make -j4
     cd ../../../
 fi
 
