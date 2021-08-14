@@ -78,7 +78,6 @@ void process_input(GLFWwindow *window)
 
 int main()
 {
-    
     // init a god window
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // opencl version 3.3
@@ -98,17 +97,21 @@ int main()
     glfwSetInputMode(god_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     // create god shader
     Shader god_shader("engine/shader/vertex_base.glsl", "engine/shader/fragment_base.glsl");
-    // create vao
-    objects_global.AddObjectBySTLFIle("model3d/SHL_2pcs.stl", 0.01);
-    objects_global.AddObjectBySTLFIle("model3d/pcb_holder.stl", 0.01);
-    objects_global.TranslateToByIndex(0, glm::vec3(0,0,-2.4));
-    objects_global.TranslateToByIndex(1, glm::vec3(0.1,0.1,-2.8));
+    // create object
+    auto str1 = objects_global.AddBufferBySTLFile("model3d/SHL_2pcs.stl", 0.01);
+    auto str2 = objects_global.AddBufferBySTLFile("model3d/pcb_holder.stl", 0.01);
+    objects_global.AddObject("11", str1);
+    objects_global.AddObject("21", str2);
+    objects_global.AddObject("12", str1);
+    objects_global.TranslateTo("11", glm::vec3(0,0,-2.4));
+    objects_global.TranslateTo("21", glm::vec3(0.1,0.1,-2.8));
+    objects_global.TranslateTo("12", glm::vec3(0.1,0.5,-2.8));
     // render loop
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     while (!glfwWindowShouldClose(god_window))
     {
         float current_frame = glfwGetTime();
-        // std::cout<<currentFrame<<std::endl;
+        // std::cout << currentFrame << std::endl;
         delta_time = current_frame - last_frame;
         last_frame = current_frame;
         // input
@@ -123,6 +126,7 @@ int main()
         glfwSwapBuffers(god_window);
         glfwPollEvents();
     }
+    objects_global.~Object3DContainer();
     glfwTerminate();
     return 0;
 }
