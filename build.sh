@@ -16,5 +16,11 @@ else
 fi
 
 mkdir build; cd build
-cmake ..; make -j4
-cd ..; ./build/world
+mkdir dlancher; cd dlancher
+cmake ../../dlancher; make
+cd ../
+mkdir engine; cd engine
+cmake ../../engine; make -j4
+
+cd ../../
+./build/engine/world
