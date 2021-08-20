@@ -3,6 +3,7 @@
 #include "../thirdparty/glm/gtc/matrix_transform.hpp"
 #include "../thirdparty/glm/gtc/type_ptr.hpp"
 #include "../thirdparty/glfw/include/GLFW/glfw3.h"
+#include "../dlancher/dlancher.h"
 
 #include "shader.h"
 #include "camera.h"
@@ -78,6 +79,7 @@ void process_input(GLFWwindow *window)
 
 int main()
 {
+    dlancher::info();
     // init a god window
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // opencl version 3.3
